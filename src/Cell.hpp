@@ -20,10 +20,10 @@ public:
 
     void kill();
     void spawn();
-    void toggle();
+    State toggle();
     void update();
     bool isClicked(int x, int y, int cellW, int cellH) const;
-    void render(SDL_Renderer *renderer, int cellW, int CellH);
+    void render(SDL_Renderer *renderer, int cellW, int CellH, State toRender);
     int getX() const { return x; }
     int getY() const { return y; }
     bool isAlive() const { return getState() == State::Alive; }

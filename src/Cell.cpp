@@ -18,9 +18,9 @@ void Cell::spawn()
     mNextState = State::Alive;
 }
 
-void Cell::toggle()
+Cell::State Cell::toggle()
 {
-    mNextState = mState == State::Dead ? State::Alive : State::Dead;
+    return mNextState = static_cast<State>(!static_cast<bool>(mState));
 }
 
 void Cell::update()
@@ -34,17 +34,19 @@ bool Cell::isClicked(int tx, int ty, int cellW, int cellH) const
     return tx > x && tx < x+cellW && ty > y && ty < y + cellH;
 }
 
-void Cell::render(SDL_Renderer *renderer, int cellW, int cellH)
+void Cell::render(SDL_Renderer *renderer, int cellW, int cellH, State toRender)
 {
     SDL_Rect r;
     r.x = x ;
     r.y = y ;
     r.w = cellW;
     r.h = cellH;
-    int color = mState == State::Alive ? 127 : 255;
-    SDL_SetRenderDrawColor(renderer, color, color, color, 255);
-    SDL_RenderFillRect(renderer, &r);
-    SDL_RenderDrawRect(renderer, &r);
+    if (getState() == toRender)
+    {
+        int color = getState() == State::Alive ? 127 : 255;
+        SDL_SetRenderDrawColor(renderer, color, color, color, 255);
+        SDL_RenderFillRect(renderer, &r);
+    }
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderDrawRect(renderer, &r);
 }

@@ -67,10 +67,6 @@ int Game::init(const GameSettings &settings)
 void Game::resetGame()
 {
 	mCells.clear();
-	for (auto &cellCol: mCells)
-	{
-		cellCol.clear();
-	}
 	
 	std::vector<int> cellPosX;
 	cellPosX.reserve(mData.nCellsPerRow);
@@ -112,6 +108,8 @@ void Game::end()
 void Game::tick()
 {
 	handleEvents();
+	int aliveCells {0};
+	int deadCells {0};
 	if (!isPaused())
 	{
 		for (int x=0; x<mData.nCellsPerRow; ++x)
@@ -126,12 +124,9 @@ void Game::tick()
 					{
 						for (int j=y-1; j<y+2; ++j)
 						{
-							if (j >= 0 && j < mData.nCellsPerCol && (j!=y || i!=x))
+							if (j >= 0 && j < mData.nCellsPerCol && (j!=y || i!=x) && mCells[i][j].isAlive())
 							{
-								if (mCells[i][j].isAlive())
-								{
-									++aliveNeighbors;
-								}
+								++aliveNeighbors;
 							}
 						}
 					}
@@ -148,11 +143,16 @@ void Game::tick()
 			}
 		}
 	}
-	for (auto &cellsCol: mCells)
+
+	for (auto &cellCol: mCells)
 	{
-		for (auto &cell: cellsCol)
+		for (auto &cell: cellCol)
+		{
 			cell.update();
+			cell.isAlive() ? ++aliveCells : ++deadCells;
+		}
 	}
+	aliveCells > deadCells ? toBeRendered = Cell::State::Dead : toBeRendered = Cell::State::Alive;
 }
 
 void Game::handleEvents()
@@ -170,23 +170,21 @@ void Game::handleEvents()
 				mLogger.debug("Mouse: ", mX, " ", mY);
 				for (auto &cellsCol: mCells)
 				{
-					bool _break{false};
 					for (auto &cell: cellsCol){
 						if (cell.isClicked(mX, mY, mData.cellSizeXIt, mData.cellSizeYIt))
 						{
 							cell.toggle();
 							mLogger.debug("Cell clicked: ", cell.getX(), " ", cell.getY());
-							_break = true;
-							break;
+							goto EXIT_EVENT_SWITCH;
 						}
 					}
-					if (_break)
-						break;
 				}
 				break;
 			}
 			break;
 		}
+EXIT_EVENT_SWITCH:
+		continue;
 	}
 	mEvents.clear();
 }
@@ -229,7 +227,8 @@ void Game::handleSysEvents()
 
 void Game::render()
 {
-	if (SDL_SetRenderDrawColor(mRenderer, 255, 255, 255, 255))
+	int color = toBeRendered == Cell::State::Alive ? 255 : 127;
+	if (SDL_SetRenderDrawColor(mRenderer, color, color, color, 255))
 	{
 		mLogger.error("Failed to set renderer draw color: ", SDL_GetError());
 	}
@@ -241,7 +240,7 @@ void Game::render()
 	{
 		for (auto &cell: cellsCol)
 		{
-			cell.render(mRenderer, mData.cellSizeXIt, mData.cellSizeYIt);
+			cell.render(mRenderer, mData.cellSizeXIt, mData.cellSizeYIt, toBeRendered);
 		}
 	}
 	SDL_RenderPresent(mRenderer);

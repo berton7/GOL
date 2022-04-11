@@ -55,6 +55,8 @@ private:
 	GameData mData;
 
 	std::vector<std::vector<Cell>> mCells;
+	int aliveCells {0}, deadCells {0};
+	Cell::State toBeRendered;
 
 	void gameSettingsToData(const GameSettings &settings);
 	void handleSysEvents();

@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 	}
 	Game game;
 	game.init(gs);
-	game.setFrameRate(30);
+	game.setFrameRate(60);
 	while (game.isRunning())
 	{
 		game.loop();
